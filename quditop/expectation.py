@@ -5,7 +5,7 @@ from typing import List, Iterable
 import torch
 import torch.nn as nn
 
-from gates import GateBase
+from .gates import GateBase
 
 class Expectation(nn.Module):
     """

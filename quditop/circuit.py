@@ -8,9 +8,9 @@ import torch
 import torch.nn as nn
 from torch import Tensor
 
-from global_var import DTYPE
-from utils import bprint, str_ket
-from gates import GateBase, WithParamGate, get_complex_tuple
+from .global_var import DTYPE
+from .utils import bprint, str_ket
+from .gates import GateBase, WithParamGate, get_complex_tuple
 
 
 class Circuit(nn.Module):
@@ -82,12 +82,14 @@ class Circuit(nn.Module):
                 self.param_name.append(gate.param_name)
         return self
 
-    def forward(self, cqs):
+    def forward(self, qs=None):
         """This function will get the last state of circuit after gates apply on initial state.
         """
+        if qs is None:
+            qs = self.qs
         for gate in self.gates:
-            cqs = gate(cqs)
-        return cqs
+            qs = gate(qs)
+        return qs
 
     def _set_initial_state(self):
         """Set the default initial state of the circuit.

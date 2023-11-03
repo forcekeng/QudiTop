@@ -8,8 +8,8 @@ import torch.nn as nn
 from torch import Tensor
 from torch.nn import Parameter
 
-from global_var import DTYPE, DEFAULT_VALUE, DEFAULT_PARAM_NAME
-from utils import bprint, str_special, str_ket
+from .global_var import DTYPE, DEFAULT_VALUE, DEFAULT_PARAM_NAME
+from .utils import bprint, str_special, str_ket
 
 
 def ket(i, dim):
@@ -239,6 +239,8 @@ def get_hadamard_gate_cmatrix(dim: int, k_qudits: int = 1):
         for j in range(dim):
             re[i, j] = torch.cos(torch.tensor(2.0 * torch.pi * i * j / dim))
             im[i, j] = torch.sin(torch.tensor(2.0 * torch.pi * i * j / dim))
+    re /= torch.sqrt(torch.tensor(dim, dtype=DTYPE))
+    im /= torch.sqrt(torch.tensor(dim, dtype=DTYPE))
     if k_qudits >= 2:
         re, im = get_general_controlled_gate_cmatrix((re, im), dim, k_qudits)
     return re, im
@@ -366,7 +368,6 @@ class GateBase(nn.Module):
         """
         return NotImplemented
 
-    @property
     def matrix(self):
         """Get the matrix of gate.
         """
