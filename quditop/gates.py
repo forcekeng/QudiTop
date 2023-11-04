@@ -274,6 +274,7 @@ def get_multi_controlled_gate_cmatrix(u, dim: int, k_qudits: int):
 
 def evolution(op_mat: Tensor, qs: Tensor, target_indices: List[int]) -> Tensor:
     """Get the new quantum state after applying specific operation(gate or matrix).
+    Refer: `https://pyquil-docs.rigetti.com/en/stable/_modules/pyquil/simulation/_numpy.html`
 
     Args:
         op_mat: The operation matrix that change the quantum state.
