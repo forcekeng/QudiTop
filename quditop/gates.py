@@ -9,7 +9,6 @@ from torch import Tensor
 from torch.nn import Parameter
 
 from .global_var import DTYPE, DEFAULT_VALUE, DEFAULT_PARAM_NAME
-from .utils import bprint, str_special, str_ket
 
 
 def ket(i, dim):
@@ -73,7 +72,6 @@ def get_complex_tuple(mat, shape=None):
     return re, im
 
 
-
 def get_multi_value_controlled_gate_cmatrix(u_list: List[Tensor]):
     """Get the matrix of multi-value controlled gate by given matrix list.
     """
@@ -112,7 +110,7 @@ def get_general_controlled_gate_cmatrix(u, dim: int, k_qudits=2, target_index=-1
 
 
 def get_sigma_x_gate_cmatrix(i: int, j: int, dim: int, k_qudits: int = 1) -> Tuple:
-    """Get the matrix of $\sigma_x$ gate. Read the documents of this package for more information.
+    """Get the matrix of sigma_x gate. Read the documents of this package for more information.
     """
     re = ket(i, dim) * bra(j, dim) + ket(j, dim) * bra(i, dim)
     im = torch.zeros((dim, dim), dtype=DTYPE)
@@ -122,7 +120,7 @@ def get_sigma_x_gate_cmatrix(i: int, j: int, dim: int, k_qudits: int = 1) -> Tup
 
 
 def get_sigma_y_gate_cmatrix(i: int, j: int, dim: int, k_qudits: int = 1) -> Tuple:
-    """Get the matrix of $\sigma_y$ gate. Read the documents of this package for more information.
+    """Get the matrix of sigma_y gate. Read the documents of this package for more information.
     """
     re = torch.zeros((dim, dim), dtype=DTYPE)
     im = -ket(i, dim) * bra(j, dim) + ket(j, dim) * bra(i, dim)
@@ -132,7 +130,7 @@ def get_sigma_y_gate_cmatrix(i: int, j: int, dim: int, k_qudits: int = 1) -> Tup
 
 
 def get_sigma_z_gate_cmatrix(i: int, j: int, dim: int, k_qudits: int = 1) -> Tuple:
-    """Get the matrix of $\sigma_z$ gate. Read the documents of this package for more information.
+    """Get the matrix of sigma_z gate. Read the documents of this package for more information.
     """
     re = ket(i, dim) * bra(i, dim) - ket(j, dim) * bra(j, dim)
     im = torch.zeros((dim, dim), dtype=DTYPE)
@@ -251,7 +249,8 @@ def get_controlled_increment_gate_cmatrix(dim: int):
     information.
     """
     u = get_increment_gate_cmatrix(dim)
-    re, im = get_general_controlled_gate_cmatrix(u, dim=dim, target_index=dim-1)
+    re, im = get_general_controlled_gate_cmatrix(
+        u, dim=dim, target_index=dim-1)
     return re, im
 
 
@@ -259,7 +258,8 @@ def get_single_controlled_gate_cmatrix(u, dim: int):
     """Get the matrix of single-controlled increment gate. Read the documents of this package for
     more information.
     """
-    re, im = get_general_controlled_gate_cmatrix(u, dim=dim, target_index=dim-1)
+    re, im = get_general_controlled_gate_cmatrix(
+        u, dim=dim, target_index=dim-1)
     return re, im
 
 
@@ -267,7 +267,8 @@ def get_multi_controlled_gate_cmatrix(u, dim: int, k_qudits: int):
     """Get the matrix of multi-controlled increment gate. Read the documents of this package for
     more information.
     """
-    re, im = get_general_controlled_gate_cmatrix(u, dim=dim, k_qudits=k_qudits, target_index=dim-1)
+    re, im = get_general_controlled_gate_cmatrix(
+        u, dim=dim, k_qudits=k_qudits, target_index=dim-1)
     return re, im
 
 
@@ -310,9 +311,9 @@ def evolution_complex(op_mat: Tuple, qs: Tuple, target_indices: List[int]) -> Te
     op_mat_real, op_mat_imag = op_mat
     qs_real, qs_imag = qs
     qs2_real = evolution(op_mat_real, qs_real, target_indices) \
-             - evolution(op_mat_imag, qs_imag, target_indices)
+        - evolution(op_mat_imag, qs_imag, target_indices)
     qs2_imag = evolution(op_mat_real, qs_imag, target_indices) \
-             + evolution(op_mat_imag, qs_real, target_indices)
+        + evolution(op_mat_imag, qs_real, target_indices)
     return qs2_real, qs2_imag
 
 
@@ -345,11 +346,14 @@ class GateBase(nn.Module):
         if obj_qudits is None:
             raise ValueError("The `obj_qudits` can't be None")
         if set(obj_qudits) & set(ctrl_qudits):
-            raise ValueError(f'{self.name} obj_qudits {obj_qudits} and ctrl_qudits {ctrl_qudits} cannot be same')
+            raise ValueError(
+                f'{self.name} obj_qudits {obj_qudits} and ctrl_qudits {ctrl_qudits} cannot be same')
         if len(set(obj_qudits)) != len(obj_qudits):
-            raise ValueError(f'{self.name} gate obj_qudits {obj_qudits} cannot be repeated')
+            raise ValueError(
+                f'{self.name} gate obj_qudits {obj_qudits} cannot be repeated')
         if len(set(ctrl_qudits)) != len(ctrl_qudits):
-            raise ValueError(f'{self.name} gate ctrl_qudits {ctrl_qudits} cannot be repeated')
+            raise ValueError(
+                f'{self.name} gate ctrl_qudits {ctrl_qudits} cannot be repeated')
         self.obj_qudits = obj_qudits
         self.ctrl_qudits = ctrl_qudits
         return self
@@ -415,6 +419,7 @@ class NoneParamGate(GateBase):
 class WithParamGate(GateBase):
     """Rotation qudit gate.
     """
+
     def __init__(self, dim, pr, name="WithParamGate", obj_qudits=None, ctrl_qudits=None):
         """Initialize an RotationGate.
         """
@@ -438,7 +443,8 @@ class WithParamGate(GateBase):
         elif isinstance(pr, (int, float, Tensor)):
             value = pr
         else:
-            raise TypeError(f"Parameter `pr` should be str of Tensor(float32), but get {pr}")
+            raise TypeError(
+                f"Parameter `pr` should be str of Tensor(float32), but get {pr}")
         self.param = Parameter(Tensor([value]))
         self.param_name = name
 
@@ -480,6 +486,7 @@ class WithParamGate(GateBase):
 class PauliNoneParamGate(NoneParamGate):
     """Pauli based none parameter gate. This gate contains two indexes.
     """
+
     def __init__(self, dim, i, j, name, obj_qudits=None, ctrl_qudits=None):
         super().__init__(dim, name, obj_qudits, ctrl_qudits)
         assert i < dim and j < dim, "The `i` and `j` should less than `dim`."
@@ -497,6 +504,7 @@ class PauliNoneParamGate(NoneParamGate):
 class SX(PauliNoneParamGate):
     """Sigma-X gate for qudit.
     """
+
     def __init__(self, dim: int = 2, i: int = 0, j: int = 1,
                  name="SX", obj_qudits=None, ctrl_qudits=None):
         super().__init__(dim, i, j, name, obj_qudits, ctrl_qudits)
@@ -506,10 +514,10 @@ class SX(PauliNoneParamGate):
         return get_sigma_x_gate_cmatrix(self._i, self._j, self.dim, k_qudits)
 
 
-
 class SY(PauliNoneParamGate):
     """Sigma-Y gate for qudit.
     """
+
     def __init__(self, dim: int = 2, i: int = 0, j: int = 1,
                  name="SY", obj_qudits=None, ctrl_qudits=None):
         super().__init__(dim, i, j, name, obj_qudits, ctrl_qudits)
@@ -522,10 +530,10 @@ class SY(PauliNoneParamGate):
 class SZ(PauliNoneParamGate):
     """Sigma-Z gate for qudit.
     """
+
     def __init__(self, dim: int = 2, i: int = 0, j: int = 1,
                  name="SZ", obj_qudits=None, ctrl_qudits=None):
         super().__init__(dim, i, j, name, obj_qudits, ctrl_qudits)
-
 
     def _cmatrix(self):
         k_qudits = len(self.obj_qudits) + len(self.ctrl_qudits)
@@ -535,6 +543,7 @@ class SZ(PauliNoneParamGate):
 class X(PauliNoneParamGate):
     """Extended Pauli-X gate for qudit.
     """
+
     def __init__(self, dim: int = 2, i: int = 0, j: int = 1,
                  name="X", obj_qudits=None, ctrl_qudits=None):
         super().__init__(dim, i, j, name, obj_qudits, ctrl_qudits)
@@ -547,6 +556,7 @@ class X(PauliNoneParamGate):
 class Y(PauliNoneParamGate):
     """Extended Pauli-Y gate for qudit.
     """
+
     def __init__(self, dim: int = 2, i: int = 0, j: int = 1,
                  name="Y", obj_qudits=None, ctrl_qudits=None):
         super().__init__(dim, i, j, name, obj_qudits, ctrl_qudits)
@@ -559,6 +569,7 @@ class Y(PauliNoneParamGate):
 class Z(PauliNoneParamGate):
     """Extended Pauli-Z gate for qudit.
     """
+
     def __init__(self, dim: int = 2, i: int = 0, j: int = 1,
                  name="Z", obj_qudits=None, ctrl_qudits=None):
         super().__init__(dim, i, j, name, obj_qudits, ctrl_qudits)
@@ -569,8 +580,9 @@ class Z(PauliNoneParamGate):
 
 
 class H(NoneParamGate):
-    """Hardarm gate for qudit.
+    """Hadamard gate for qudit.
     """
+
     def __init__(self, dim: int, name="H", obj_qudits=None, ctrl_qudits=None):
         super().__init__(dim, name, obj_qudits, ctrl_qudits)
 
@@ -582,6 +594,7 @@ class H(NoneParamGate):
 class PauliWithParamGate(WithParamGate):
     """Pauli based none parameter gate. This gate contains two indexes.
     """
+
     def __init__(self, dim, i, j, pr, name, obj_qudits=None, ctrl_qudits=None):
         super().__init__(dim, pr, name, obj_qudits, ctrl_qudits)
         assert i < dim and j < dim, "The `i` and `j` should less than `dim`."
@@ -600,6 +613,7 @@ class PauliWithParamGate(WithParamGate):
 class RX(PauliWithParamGate):
     """Rotation X gate for qudit.
     """
+
     def __init__(self, dim: int = 2, i: int = 0, j: int = 1, pr=None,
                  name="RX", obj_qudits=None, ctrl_qudits=None):
         super().__init__(dim, i, j, pr, name, obj_qudits, ctrl_qudits)
@@ -612,6 +626,7 @@ class RX(PauliWithParamGate):
 class RY(PauliWithParamGate):
     """Rotation Y gate for qudit.
     """
+
     def __init__(self, dim: int = 2, i: int = 0, j: int = 1, pr=None,
                  name="RY", obj_qudits=None, ctrl_qudits=None):
         super().__init__(dim, i, j, pr, name, obj_qudits, ctrl_qudits)
@@ -624,6 +639,7 @@ class RY(PauliWithParamGate):
 class RZ(PauliWithParamGate):
     """Rotation Z gate for qudit.
     """
+
     def __init__(self, dim: int = 2, i: int = 0, j: int = 1, pr=None,
                  name="RZ", obj_qudits=None, ctrl_qudits=None):
         super().__init__(dim, i, j, pr, name, obj_qudits, ctrl_qudits)
@@ -636,6 +652,7 @@ class RZ(PauliWithParamGate):
 class INC(NoneParamGate):
     """Increment gate for qudit.
     """
+
     def __init__(self, dim: int, name="INC", obj_qudits=None, ctrl_qudits=None):
         super().__init__(dim, name, obj_qudits, ctrl_qudits)
 
@@ -647,8 +664,10 @@ class INC(NoneParamGate):
 class MVCG(NoneParamGate):
     """Multi-value controlled gate.
     """
+
     def __init__(self, dim: int, u_list: List, name="MVCG", obj_qudits=None, ctrl_qudits=None):
-        assert len(u_list) == dim, "The length of gates should equals to the `dim`."
+        assert len(
+            u_list) == dim, "The length of gates should equals to the `dim`."
         super().__init__(dim, name, obj_qudits, ctrl_qudits)
         self.u_list = u_list
 
@@ -659,6 +678,7 @@ class MVCG(NoneParamGate):
 class CINC(NoneParamGate):
     """Controlled increment gate.
     """
+
     def __init__(self, dim: int, name="CINC", obj_qudits=None, ctrl_qudits=None):
         super().__init__(dim, name, obj_qudits, ctrl_qudits)
 
@@ -669,6 +689,7 @@ class CINC(NoneParamGate):
 class SCG(NoneParamGate):
     """Single controlled gate.
     """
+
     def __init__(self, dim: int, u, name="SCG", obj_qudits=None, ctrl_qudits=None):
         super().__init__(dim, name, obj_qudits, ctrl_qudits)
         self.u = u
@@ -680,6 +701,7 @@ class SCG(NoneParamGate):
 class MCG(NoneParamGate):
     """Multi controlled gate for qudit.
     """
+
     def __init__(self, dim: int, u, k_qudits=2, name="MCG", obj_qudits=None, ctrl_qudits=None):
         super().__init__(dim, name, obj_qudits, ctrl_qudits)
         self.u = u
@@ -693,6 +715,7 @@ class MCG(NoneParamGate):
 class UMG(NoneParamGate):
     """Universal math gate.
     """
+
     def __init__(self, dim: int, mat: Union[Tensor, Tuple], name="UMG",
                  obj_qudits=None, ctrl_qudits=None):
         super().__init__(dim, name, obj_qudits, ctrl_qudits)
@@ -700,3 +723,7 @@ class UMG(NoneParamGate):
 
     def _cmatrix(self):
         return get_complex_tuple(self._mat)
+
+
+__all__ = ["GateBase", "NoneParamGate", "WithParamGate", "PauliNoneParamGate", "PauliWithParamGate",
+           "SX", "SY", "SZ", "X", "Y", "Z", "RX", "RY", "RZ", "H", "INC", "MVCG", "CINC", "SCG", "MCG", "UMG"]

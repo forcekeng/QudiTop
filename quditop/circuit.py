@@ -14,9 +14,12 @@ from .gates import GateBase, WithParamGate, get_complex_tuple
 
 
 class Circuit(nn.Module):
-    """A list like container that contains qudit gates.
-    """
-    def __init__(self, dim: int, n_qudits: int, gates: Optional[Iterable[GateBase]] = []) -> None:
+    """A list like container that contains qudit gates."""
+
+    def __init__(self,
+                 dim: int,
+                 n_qudits: int,
+                 gates: Optional[Iterable[GateBase]] = None) -> None:
         """Initialize.
 
         Args:
@@ -27,24 +30,30 @@ class Circuit(nn.Module):
         super().__init__()
         self.dim = dim
         self.n_qudits = n_qudits
-        self._set_initial_state()
         self.param_name = []
-        self.gates = nn.ModuleList()
-        if self is not None:
+        self.gates = nn.ModuleList()   # Quantum gates
+        self.qs = None                 # Quantum state
+        self._set_initial_state()
+
+        if gates is not None:
             for gate in gates:
                 if gate.dim != self.dim:
-                    raise ValueError(f"The input gate.dim({gate.dim}) doesn't match the circuit dim({self.dim}).")
+                    raise ValueError(
+                        f"The input gate.dim({gate.dim}) doesn't match the circuit dim({self.dim}).")
                 if max(gate.obj_qudits) >= self.n_qudits:
-                    raise ValueError(f"Gate {gate.name}.obj_qudits = {gate.obj_qudits} should less than {self.n_qudits}.")
+                    raise ValueError(
+                        f"Gate {gate.name}.obj_qudits = {gate.obj_qudits} should less than {self.n_qudits}."
+                    )
                 if gate.ctrl_qudits and max(gate.ctrl_qudits) >= self.n_qudits:
-                    raise ValueError(f"Gate {gate.name}.obj_qudits = {gate.ctrl_qudits} should less than {self.n_qudits}.")
+                    raise ValueError(
+                        f"Gate {gate.name}.obj_qudits = {gate.ctrl_qudits} should less than {self.n_qudits}."
+                    )
                 self.gates.append(gate)
                 if isinstance(gate, WithParamGate):
                     self.param_name.append(gate.param_name)
 
     def append(self, arg: Union[GateBase, Iterable[GateBase], "Circuit"]) -> "Circuit":
-        """Add a gate, a series of gate or another circuit to this circuit inplace.
-        """
+        """Add a gate, a series of gate or another circuit to this circuit inplace."""
         if isinstance(arg, GateBase):
             self.gates.append(arg)
         elif isinstance(arg, Iterable):
@@ -52,7 +61,9 @@ class Circuit(nn.Module):
         elif isinstance(arg, Circuit):
             self.gates.extend(arg.gates)
         else:
-            raise TypeError(f"The input type should be GateBase or Iterable, but got {type(self.gates)}.")
+            raise TypeError(
+                f"The input type should be GateBase or Iterable, but got {type(self.gates)}."
+            )
         self.param_name.clear()
         for gate in self.gates:
             if isinstance(gate, WithParamGate):
@@ -61,7 +72,6 @@ class Circuit(nn.Module):
     def __iadd__(self, arg: Union[GateBase, Iterable[GateBase], "Circuit"]) -> "Circuit":
         self.append(arg)
         return self
-
 
     def __add__(self, arg: Union[GateBase, Iterable[GateBase], "Circuit"]) -> "Circuit":
         new_gates = []
@@ -74,7 +84,9 @@ class Circuit(nn.Module):
         elif isinstance(arg, Circuit):
             new_gates.extend(arg.gates)
         else:
-            raise TypeError(f"The input type should be GateBase or Iterable, but got {type(self.gates)}.")
+            raise TypeError(
+                f"The input type should be GateBase or Iterable, but got {type(self.gates)}."
+            )
         self.gates = nn.ModuleList(new_gates)
         self.param_name.clear()
         for gate in self.gates:
@@ -83,8 +95,7 @@ class Circuit(nn.Module):
         return self
 
     def forward(self, qs=None):
-        """This function will get the last state of circuit after gates apply on initial state.
-        """
+        """This function will get the last state of circuit after gates apply on initial state."""
         if qs is None:
             qs = self.qs
         for gate in self.gates:
@@ -92,30 +103,26 @@ class Circuit(nn.Module):
         return qs
 
     def _set_initial_state(self):
-        """Set the default initial state of the circuit.
-        """
+        """Set the default initial state of the circuit."""
         re = torch.zeros(self.dim**self.n_qudits, dtype=DTYPE)
         re[0] = 1
         im = torch.zeros(self.dim**self.n_qudits, dtype=DTYPE)
         self.set_init_qs((re, im))
 
     def reset(self):
-        """Reset the initial state as the default one.
-        """
+        """Reset the initial state as the default one."""
         self.qs = self._get_initial_state()
 
-    def _detach_flatten_merge_qs(self, qs: Tuple[Tensor], endian_reverse=False):
-        """A tool function that convert the representation format of quantum state.
-        """
+    def _detach_flatten_merge_qs(self,
+                                 qs: Tuple[Tensor],
+                                 endian_reverse=False):
+        """A tool function that convert the representation format of quantum state."""
         re, im = qs[0].detach(), qs[1].detach()
         if endian_reverse:
             indices = list(range(self.n_qudits))[::-1]
             re = re.permute(*indices)
             im = im.permute(*indices)
-        return torch.complex(
-            re.flatten(),
-            im.flatten()
-        )
+        return torch.complex(re.flatten(), im.flatten())
 
     def _assign_parameters(self, pr, trainable=False):
         """Assign parameter to circuit.
@@ -129,32 +136,35 @@ class Circuit(nn.Module):
         param_gates = []
         if isinstance(pr, (np.ndarray, List, Tensor)):
             for gate in self.gates:
-                if isinstance(gate, WithParamGate) and (trainable == gate.trainable):
+                if isinstance(gate, WithParamGate) and (trainable
+                                                        == gate.trainable):
                     param_gates.append(gate)
-            assert len(pr) == len(param_gates), f"Circuit have {len(param_gates)} parameters, "\
-                                f"but giving {len(pr)} parameters."
+            assert len(pr) == len(param_gates), (
+                f"Circuit have {len(param_gates)} parameters, "
+                f"but giving {len(pr)} parameters.")
             for value, gate in zip(pr, param_gates):
                 gate.assign_param(value)
 
         elif isinstance(pr, dict):
-            assert set(pr.keys()).issubset(set(self.param_name)),\
-                f"The circuit parameters are {self.param_name}, while got {pr.keys()}."
+            assert set(pr.keys()).issubset(
+                set(self.param_name)
+            ), f"The circuit parameters are {self.param_name}, while got {pr.keys()}."
             for gate in self.gates:
-                if isinstance(gate, WithParamGate) and (trainable == gate.trainable):
+                if isinstance(gate, WithParamGate) and (trainable
+                                                        == gate.trainable):
                     name = gate.param_name
                     if name in pr.keys():
                         gate.assign_param(pr[name])
         else:
-            raise TypeError("`pr` 's type should be list, numpy.ndarray or dict.")
+            raise TypeError(
+                "`pr` 's type should be list, numpy.ndarray or dict.")
 
     def assign_encoder_parameters(self, pr):
-        """Assign parameters to encoder gates, which are non-trainable parameterized gates.
-        """
+        """Assign parameters to encoder gates, which are non-trainable parameterized gates."""
         self._assign_parameters(pr, trainable=False)
 
     def assign_ansatz_parameters(self, pr):
-        """Assign parameters to ansatz gates, which are trainable parameterized gates.
-        """
+        """Assign parameters to ansatz gates, which are trainable parameterized gates."""
         self._assign_parameters(pr, trainable=True)
 
     def get_qs_tuple(self):
@@ -167,44 +177,45 @@ class Circuit(nn.Module):
         """Get quantum state.
 
         Args:
-            pr: The given parameters. If None, use the current value of parameters. Otherwise assign the
+            pr: The given parameters. If None, use the current value of parameters. Otherwise assign
                 the value in `pr` to the parameters in circuit.
             ket: The output format is ket string (ket=True) or numpy.ndarray (ket=False).
         """
         self.assign_encoder_parameters(pr)
         self.assign_ansatz_parameters(pr)
-        qs = self._detach_flatten_merge_qs(self.forward(self.qs), endian_reverse).numpy()
+        qs = self._detach_flatten_merge_qs(self.forward(self.qs),
+                                           endian_reverse).numpy()
         if ket:
             return str_ket(self.dim, qs)
         return qs
 
     def set_init_qs(self, qs):
-        """Set the initial state of circuit, initial state means the state that on the most left state of
-        circuit.
-        Note: This function will not check if the state is a quantum state (such as the vector norm is 1).
+        """Set the initial state of circuit, initial state means the state that on the most left
+        state of circuit.
+        Note: This function will not check if the state is a quantum state (such as if norm is 1).
         """
-        shape = (self.dim,) * self.n_qudits
+        shape = (self.dim, ) * self.n_qudits
         self.qs = get_complex_tuple(qs, shape)
 
     def no_grad_(self):
-        """Stop calculating gradient for all the parameterized gates, it's usually used as encoder. This
-        operation is inplace.
+        """Stop calculating gradient for all the parameterized gates, it's usually used as encoder.
+        This operation is inplace.
         """
         for gate in self.gates:
             if isinstance(gate, WithParamGate):
                 gate.no_grad_()
 
     def with_grad_(self):
-        """Calculating gradient for all the parameterized gates, it's usually used as ansatz. This operation
-        is inplace.
+        """Calculating gradient for all the parameterized gates, it's usually used as ansatz. This
+        operation is inplace.
         """
         for gate in self.gates:
             if isinstance(gate, WithParamGate):
                 gate.with_grad_()
 
     def as_encoder(self):
-        """Set the circuit as encoder, which means stopping calculating gradient for parameters. This
-        operation is inplace.
+        """Set the circuit as encoder, which means stopping calculating gradient for parameters.
+        This operation is inplace.
         """
         self.no_grad_()
         return self
@@ -217,43 +228,36 @@ class Circuit(nn.Module):
         return self
 
     def qs_probability_distribution(self, endian_reverse=True) -> Dict:
-        """Get the probability of each quantum state.
-        """
+        """Get the probability of each quantum state."""
         qs = self.get_qs(endian_reverse)
         p = (qs.conj() * qs).real
         p /= p.sum()
-        state_str = [np.base_repr(ind, self.dim).zfill(self.n_qudits)
-                     for ind in range(self.dim**self.n_qudits)]
+        state_str = [
+            np.base_repr(ind, self.dim).zfill(self.n_qudits)
+            for ind in range(self.dim**self.n_qudits)
+        ]
         return dict(zip(state_str, p))
 
-    def sampling(self, shots: int = 1000, display=False, endian_reverse=True) -> None:
+    def sampling(self, shots: int = 1000, endian_reverse=True) -> None:
         """Measure the circuit `shots` times and calculate the result.
 
         Args:
             shots: The number of sampling.
-            display: If display the result in figure.
-            endian_reverse: If show the result in reversed endian. Since the endian is opposite to some
-                other quantum framework(such as MindQuantum), set `endian_reverse=True` will return
-                consistent result.
+            endian_reverse: If show the result in reversed endian. Since the endian is opposite to some other quantum
+                frameworks(such as MindQuantum), set `endian_reverse=True` will return consistent result.
         """
         p = self.qs_probability_distribution(endian_reverse)
         points = np.random.choice(self.dim**self.n_qudits, shots, p=p)
         counter = collections.Counter(points)
         count = [counter[i] for i in range(self.dim**self.n_qudits)]
-        formatter = "{:0" + str(self.n_qudits) + "b}"
-
-        state_str = [np.base_repr(ind, self.dim).zfill(self.n_qudits)
-                     for ind in range(self.dim**self.n_qudits)]
-        if display:
-            import matplotlib.pyplot as plt
-            plt.bar(state_str, count)
-            plt.xticks(rotation=90)
-            plt.show()
+        state_str = [
+            np.base_repr(ind, self.dim).zfill(self.n_qudits)
+            for ind in range(self.dim**self.n_qudits)
+        ]
         return dict(zip(state_str, count))
 
     def summary(self):
-        """Print the basic information of circuit.
-        """
+        """Print the basic information of circuit."""
         num_non_para_gate = 0
         num_para_gate = 0
         for gate in self.gates:
@@ -263,13 +267,16 @@ class Circuit(nn.Module):
                 num_non_para_gate += 1
         info = bprint(
             [
-                f'Total number of gates: {num_para_gate + num_non_para_gate}.',
-                f'Parameter gates: {num_para_gate}.',
+                f"Total number of gates: {num_para_gate + num_non_para_gate}.",
+                f"Parameter gates: {num_para_gate}.",
                 f"with {len(self.param_name)} parameters are: ",
                 f"{', '.join(self.param_name[:10])}{'.' if len(self.param_name) <= 10 else '...'}",
-                f'Number qudits of circuit: {self.n_qudits}',
+                f"Number qudits of circuit: {self.n_qudits}",
             ],
-            title='Circuit Summary',
+            title="Circuit Summary",
         )
         for i in info:
             print(i)
+
+
+__all__ = ["Circuit"]
