@@ -5,7 +5,7 @@ This is a quantum simulator for qudit system based on the deep learning framewor
 ## Get Started
 
 ```python
-from quditop.gates import H, X, Y, Z, RX, RY, RZ, SX, SY, SZ, UMG
+from quditop.gates import H, X, Y, Z, RX, RY, RZ, UMG
 from quditop.circuit import Circuit
 
 dim = 2
@@ -13,13 +13,13 @@ n_qudits = 4
 
 circ = Circuit(dim, n_qudits, gates=[
     H(dim).on(0),
-    X(dim, i=2, j=1).on(0, [2,3]),
-    Y(dim, i=0, j=2).on(1),
-    Z(dim).on(1, 2),
-    RX(dim, i=0, j=1, pr='param').on(3),
-    RY(dim, i=0, j=1, pr=1.0).on(2, 3),
-    X(dim).on(1, [0, 2, 3]),     # Default: i=0, j=1
-    RY(dim, pr=2.0).on(3, [0, 1, 2])
+    X(dim, [0,1]).on(0, [2,3], [1, 1]),
+    Y(dim).on(1),
+    Z(dim).on(1, 2, 1),
+    RX(dim, pr='param').on(3),
+    RY(dim, pr=1.0).on(2, 3, 1),
+    X(dim).on(1, [0, 2, 3], 1),
+    RY(dim, pr=2.0).on(3, [0, 1, 2], 1)
 ])
 
 print(circ)
