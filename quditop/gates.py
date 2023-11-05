@@ -13,7 +13,7 @@ from .evolution import evolution_complex, get_general_controlled_gate_cmatrix
 from .global_var import DTYPE, DEFAULT_VALUE, DEFAULT_PARAM_NAME
 
 
-def get_multi_value_controlled_gate_cmatrix(u_list: List[Tensor], ctrl_states:List=None):
+def get_multi_value_controlled_gate_cmatrix(u_list: List[Tensor], ctrl_states: List = None):
     """Get the matrix of multi-value controlled gate by given matrix list."""
     assert len(u_list) == u_list[0].shape[0] == u_list[0].shape[1]
     dim = len(u_list)
@@ -23,12 +23,13 @@ def get_multi_value_controlled_gate_cmatrix(u_list: List[Tensor], ctrl_states:Li
         if isinstance(u, np.ndarray):
             u = torch.tensor(u)
         if torch.is_complex(u):
-            re[i * dim : (i + 1) * dim, i * dim : (i + 1) * dim] = u.real
-            im[i * dim : (i + 1) * dim, i * dim : (i + 1) * dim] = u.imag
+            re[i * dim: (i + 1) * dim, i * dim: (i + 1) * dim] = u.real
+            im[i * dim: (i + 1) * dim, i * dim: (i + 1) * dim] = u.imag
         else:
-            re[i * dim : (i + 1) * dim, i * dim : (i + 1) * dim] = u
+            re[i * dim: (i + 1) * dim, i * dim: (i + 1) * dim] = u
     if ctrl_states:
-        re, im = get_general_controlled_gate_cmatrix((re, im), dim, ctrl_states)
+        re, im = get_general_controlled_gate_cmatrix(
+            (re, im), dim, ctrl_states)
     return re, im
 
 
@@ -43,7 +44,8 @@ def get_pauli_x_gate_cmatrix(
         if k != i and k != j:
             re += ket(k, dim) * bra(k, dim)
     if ctrl_states:
-        re, im = get_general_controlled_gate_cmatrix((re, im), dim, ctrl_states)
+        re, im = get_general_controlled_gate_cmatrix(
+            (re, im), dim, ctrl_states)
     return re, im
 
 
@@ -58,7 +60,8 @@ def get_pauli_y_gate_cmatrix(
         if k != i and k != j:
             re += ket(k, dim) * bra(k, dim)
     if ctrl_states:
-        re, im = get_general_controlled_gate_cmatrix((re, im), dim, ctrl_states)
+        re, im = get_general_controlled_gate_cmatrix(
+            (re, im), dim, ctrl_states)
     return re, im
 
 
@@ -73,7 +76,8 @@ def get_pauli_z_gate_cmatrix(
         if k != i and k != j:
             re += ket(k, dim) * bra(k, dim)
     if ctrl_states:
-        re, im = get_general_controlled_gate_cmatrix((re, im), dim, ctrl_states)
+        re, im = get_general_controlled_gate_cmatrix(
+            (re, im), dim, ctrl_states)
     return re, im
 
 
@@ -89,7 +93,8 @@ def get_rotate_x_gate_cmatrix(
     im[i, j] = -torch.sin(pr / 2.0)
     im[j, i] = -torch.sin(pr / 2.0)
     if ctrl_states:
-        re, im = get_general_controlled_gate_cmatrix((re, im), dim, ctrl_states)
+        re, im = get_general_controlled_gate_cmatrix(
+            (re, im), dim, ctrl_states)
     return re, im
 
 
@@ -105,7 +110,8 @@ def get_rotate_y_gate_cmatrix(
     re[j, i] = torch.sin(pr / 2.0)
     re[j, j] = torch.cos(pr / 2.0)
     if ctrl_states:
-        re, im = get_general_controlled_gate_cmatrix((re, im), dim, ctrl_states)
+        re, im = get_general_controlled_gate_cmatrix(
+            (re, im), dim, ctrl_states)
     return re, im
 
 
@@ -121,7 +127,8 @@ def get_rotate_z_gate_cmatrix(
     im[i, i] = -torch.sin(pr / 2.0)
     im[j, j] = torch.sin(pr / 2.0)
     if ctrl_states:
-        re, im = get_general_controlled_gate_cmatrix((re, im), dim, ctrl_states)
+        re, im = get_general_controlled_gate_cmatrix(
+            (re, im), dim, ctrl_states)
     return re, im
 
 
@@ -131,7 +138,8 @@ def get_increment_gate_cmatrix(dim: int, ctrl_states: List = None) -> Tuple:
     re[dim - 1, dim - 1] = 1.0
     im = torch.zeros((dim, dim))
     if ctrl_states:
-        re, im = get_general_controlled_gate_cmatrix((re, im), dim, ctrl_states)
+        re, im = get_general_controlled_gate_cmatrix(
+            (re, im), dim, ctrl_states)
     return re, im
 
 
@@ -146,7 +154,8 @@ def get_hadamard_gate_cmatrix(dim: int, ctrl_states: List = None) -> Tuple:
     re /= torch.sqrt(torch.tensor(dim, dtype=DTYPE))
     im /= torch.sqrt(torch.tensor(dim, dtype=DTYPE))
     if ctrl_states:
-        re, im = get_general_controlled_gate_cmatrix((re, im), dim, ctrl_states)
+        re, im = get_general_controlled_gate_cmatrix(
+            (re, im), dim, ctrl_states)
     return re, im
 
 
@@ -160,7 +169,8 @@ def get_swap_gate_cmatrix(dim: int, ctrl_states: List = None) -> Tuple:
             if j == (i*dim + i//dim) % n:
                 re[i, j] = 1
     if ctrl_states:
-        re, im = get_general_controlled_gate_cmatrix((re, im), dim, ctrl_states)
+        re, im = get_general_controlled_gate_cmatrix(
+            (re, im), dim, ctrl_states)
     return re, im
 
 
@@ -180,7 +190,8 @@ class GateBase(nn.Module):
         if not isinstance(name, str):
             raise TypeError(f"Excepted string for gate name, get {type(name)}")
         if dim > 10:
-            raise ValueError(f"The supported maximum dimension is 10, but got {dim}.")
+            raise ValueError(
+                f"The supported maximum dimension is 10, but got {dim}.")
         self.dim = dim
         self.name = name
         self.obj_qudits = obj_qudits
@@ -587,7 +598,8 @@ class MVCG(NoneParamGate):
         ctrl_states=None,
         name="MVCG",
     ):
-        assert len(u_list) == dim, "The length of gates should equals to the `dim`."
+        assert len(
+            u_list) == dim, "The length of gates should equals to the `dim`."
         super().__init__(dim, obj_qudits, ctrl_qudits, ctrl_states, name)
         self.u_list = u_list
 
@@ -613,7 +625,8 @@ class UMG(NoneParamGate):
     def _cmatrix(self):
         re, im = get_complex_tuple(self._mat)
         if self.ctrl_states:
-            re, im = get_general_controlled_gate_cmatrix((re, im), self.dim, self.ctrl_states)
+            re, im = get_general_controlled_gate_cmatrix(
+                (re, im), self.dim, self.ctrl_states)
         return re, im
 
 
