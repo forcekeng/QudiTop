@@ -10,7 +10,8 @@ from torch import Tensor
 
 from .global_var import DTYPE
 from .utils import bprint, str_ket
-from .gates import GateBase, WithParamGate, get_complex_tuple
+from .gates import GateBase, WithParamGate
+from .common import get_complex_tuple
 
 
 class Circuit(nn.Module):
