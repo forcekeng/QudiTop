@@ -1,6 +1,105 @@
 # QudiTop
 
-This is a quantum simulator for qudit system based on the deep learning framework - PyTorch[1].
+This project named QudiTop is a numerically quantum simulator for qudit system based on PyTorch.
+QudiTop includes a variety of qudit gates, circuit and expectation etc. Especially for qudit gate, we can easily define the objective qudits, control qudits and corresponding control states, which allow you to simulate complex control in qudit circuit.
+Besides, QudiTop supports the difference of parameters, which allows you to run VQE (variational quantum eigensolver) application well.
+
+## File Structure
+
+The core source code lies in `quditop/` folder and examples in `examples/`.
+
+```log
+.
+├── README.md
+├── examples
+│   ├── demo_basic.ipynb    # Demonstrate basic functions.
+│   └── demo_vqe.ipynb      # Demonstrate the VQE application.
+└── quditop
+    ├── circuit.py          # Define the Circuit class.
+    ├── common.py           # Common function.
+    ├── evolution.pyc       # Library for Windows-Python3.9.
+    ├── evolution.so        # Library for Linux-Python3.8.
+    ├── gates.py            # Quantum gates.
+    ├── global_var.py       # Define some global configuration.
+    └── utils.py            # Some tool functions.
+
+```
+
+## Qudit Gate
+
+These qudits gates are realized, the matrix definations follows github repository [GhostArtyom/QuditVQE](https://github.com/GhostArtyom/QuditVQE/tree/main/QuditSim).
+
+- 1-qudit gates
+  - Extended Pauli gates: $X_d^{(i,j)},Y_d^{(i,j)},Z_d^{(i,j)}$
+  - Rotation gate: $RX_d^{(i,j)},RY_d^{(i,j)},RZ_d^{(i,j)}$
+  - Hadamard gate: $H_d$
+  - Increment gate: $\mathrm{INC}_d$
+  - Phase gate: $PH$
+
+- Multi-qudits gates
+  - Universal math gate: $UMG$, it can act on one or multi qudits, according to the shape of matrix.
+  - SWAP gate: $SWAP$.
+  - Controlled gate: Control any above 1-qudit or multi-qubits gates by one or multi controlled qudits.
+
+For gates that contain parameters, such as $RX$, calculating the difference is supported to run VQE applications.
+A detailed introduction and mathematical matrix can be seen in article. Comparing with qubit, the qudit system is more complex, not only more state level has to be solved, but also the control states may change. In qubit system we
+normally use to the state $1$ as the control state, while in qudit system, such for $d=3$, there're 3 states ($0,1$ and $2$), we can use $1$ or $2$ as control state, or even
+use state $0$. So a common format of gate is:
+
+- `H(dim).on(obj_qudits, ctrl_qudits, ctrl_states)`
+- `X(dim, ind).on(obj_qudits, ctrl_qudits, ctrl_states)`
+- `RX(dim, ind, pr).on(obj_qudits, ctrl_qudits, ctrl_states)`
+
+The `dim` is the dimension of the qudit, for qubit the dimension is 2, dimension is $3$ means there are 3 states for qudit.
+The `Quditop` framework allows the `dim` is at most $10$, normally we use `dim`$=3,4$ or $5$ in qudit simulation.
+
+## Qudit Circuit
+
+ `class Circuit` is implemented to simulate the quantum circuit. Interfaces of `Circuit` include but not limit to:
+
+- `append`, `+` and '+=' for `Circuit` and qudit gate(s).
+- `as_encoder` and `as_ansatz` to allow or inhibit the difference of parameters.
+- `get_qs` and `set_qs` to get or set the last state or set the initial state of circuit.
+
+We can build a qudit circuit simply by
+
+```python
+dim = 2
+n_qudits = 4
+
+circ = Circuit(dim, n_qudits, gates=[
+    H(dim).on(0),
+    X(dim, [0,1]).on(0, [2,3], [1, 1])
+])
+```
+
+## Hamiltonian
+
+We don't need a single class for hamiltonian. Because essentially we can treat hamiltonian as a series of gates that act on last quantum state. Specifically, we can write a hamiltonian as
+
+```python
+# Assuming we act X and Y gates on qudit 1 and 2 respectively
+xg = X(dim=3).on(1)
+yg = Y(dim=3).on(2)
+# a and b are the const coefficients of the hamiltonian
+a = 1.0
+b = 2.0
+hams = [(a, xg), (b, yg)]
+```
+
+## Expectation
+
+`class Expectation` is used to get the measure expectation with given hamiltonian and circuit. Mathematically, expectation $h = \langle\psi |H| \psi\rangle$, where $O$ is the hamiltonian and $\psi$ is the last quantum state.
+
+```python
+expect_fn = Expectation(hams)    # Define expectation
+last_qs = circ()                 # Get the last state of circuit
+out = expect_fn(last_qs)         # Get the expectation
+```
+
+## Difference of Parameter
+
+This quantum simulator is realized based on PyTorch. Comparing with deep learning, you can just treat one qudit gate as a layer of network. In fact, the gate is subclass of `torch.nn.Module`. So you can easily use the `loss.backward()` to get the gradient of parameter, and `optimizer.step()` to update parameter with specific optimizer. If you never or new to PyTorch, the documents of PyTorch are recommended. You can see how to train a hybrid quantum-classical VQE (variational quantum eigensolver) in file `example/demo_vqe.ipynb`.
 
 ## Get Started
 
@@ -26,25 +125,31 @@ print(circ)
 print(f"quantum state:\n{circ.get_qs(ket=True)}")
 ```
 
-You can see more example in detail in the folder of `examples/`.
+The output should like this:
 
-## File Structure
-
-The core source code lies in `quditop/` folder and examples in `examples/`.
-
-```log
-.
-├── README.md
-├── examples/
-│   ├── demo_basic.ipynb    # Demonstrate basic functions
-│   └── demo_vqe.ipynb      # Demonstrate the VQE application
-└── quditop/
-    ├── circuit.py          # Define the Circuit class
-    ├── expectation.py      # Define expectation
-    ├── gates.py            # Define various gate
-    ├── global_var.py       # Define some global configuration
-    └── utils.py            # Some tool functions.
+```text
+Circuit(
+  (gates): ModuleList(
+    (0): H(2|0)
+    (1): X(2 [0 1]|0 <-: 2 3 - 1 1)
+    (2): Y(2 [0 1]|1)
+    (3): Z(2 [0 1]|1 <-: 2 - 1)
+    (4): RX(2 [0 1] param|3)
+    (5): RY(2 [0 1] _param_|2 <-: 3)
+    (6): X(2 [0 1]|1 <-: 0 2 3 - 1 1 1)
+    (7): RY(2 [0 1] _param_|3 <-: 0 1 2)
+  )
+)
+quantum state:
+0.6205j¦0010⟩
+0.6205j¦0011⟩
+0.2975¦1010⟩
+0.2975¦1011⟩
+0.1625¦1101⟩
+0.1625¦1110⟩
 ```
+
+More details in the folder of `examples/`.
 
 ## Thanks to
 

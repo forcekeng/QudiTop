@@ -132,6 +132,20 @@ def get_rotate_z_gate_cmatrix(
     return re, im
 
 
+def get_global_phase_gate_cmatrix(
+    dim: int, pr: Parameter, ctrl_states: List = None
+) -> Tuple:
+    re = torch.zeros((dim, dim), dtype=DTYPE)
+    im = torch.zeros((dim, dim), dtype=DTYPE)
+    for i in range(dim):
+        re[i, i] = torch.cos(-pr)
+        im[i, i] = torch.sin(-pr)
+    if ctrl_states:
+        re, im = get_general_controlled_gate_cmatrix(
+            (re, im), dim, ctrl_states)
+    return re, im
+
+
 def get_increment_gate_cmatrix(dim: int, ctrl_states: List = None) -> Tuple:
     """Get the matrix of increment gate. Read the documents of this package for more information."""
     re = torch.tensor(np.eye(dim, k=-1), dtype=DTYPE)
@@ -255,7 +269,7 @@ class GateBase(nn.Module):
     def is_unitary(self):
         """Check if this gate is unitary."""
         mat = self.matrix()
-        return check_unitary(self.matrix)
+        return check_unitary(mat)
 
 
 class NoneParamGate(GateBase):
@@ -363,6 +377,10 @@ class WithParamGate(GateBase):
         assert self.param is not None, "`param` is None."
         if isinstance(value, float):
             value = [value]
+        elif isinstance(value, (np.float32, np.float64)):
+            value = [value.item()]
+        elif isinstance(value, Tensor) and value.dim() == 0:
+            value = [float(value.item())]
         self.param.data = Tensor(value)
 
 
@@ -562,6 +580,26 @@ class RZ(PauliWithParamGate):
         )
 
 
+class GH(WithParamGate):
+    """Global phase gate."""
+
+    def __init__(
+        self,
+        dim=2,
+        pr=None,
+        obj_qudits=None,
+        ctrl_qudits=None,
+        ctrl_states=None,
+        name="GH",
+    ):
+        super().__init__(dim, pr, obj_qudits, ctrl_qudits, ctrl_states, name)
+
+    def _cmatrix(self):
+        return get_global_phase_gate_cmatrix(
+            self.dim, self.param, self.ctrl_states
+        )
+
+
 class INC(NoneParamGate):
     """Increment gate for qudit."""
 
@@ -642,10 +680,10 @@ __all__ = [
     "RX",
     "RY",
     "RZ",
+    "GH",
     "H",
     "INC",
     "MVCG",
-    "MCG",
     "UMG",
     "SWAP",
 ]

@@ -228,6 +228,17 @@ class Circuit(nn.Module):
         self.with_grad_()
         return self
 
+    def get_parameters(self):
+        res = {}
+        for gate in self.gates:
+            if isinstance(gate, WithParamGate) and gate.trainable:
+                param = gate.param.data.numpy()
+                if len(param) == 1:
+                    res[gate.param_name] = param[0]
+                else:
+                    res[gate.param_name] = param.tolist()
+        return res
+
     def qs_probability_distribution(self, endian_reverse=True) -> Dict:
         """Get the probability of each quantum state."""
         qs = self.get_qs(endian_reverse)
