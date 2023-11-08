@@ -4,6 +4,8 @@ QudiTop is a numerically quantum simulator for qudit system based on PyTorch. He
 
 ## Qudit Gate
 
+The define of gates comes from [GhostArtyom/QuditVQE](https://github.com/GhostArtyom/QuditVQE/blob/main/QuditSim/QuditSim.md).
+
 - 1-qudit gates
   - Extended Pauli gates: $X_d^{(j,k)},Y_d^{(j,k)},Z_d^{(j,k)}$
   - Rotation gate: $RX_d^{(j,k)},RY_d^{(j,k)},RZ_d^{(j,k)}$
@@ -68,7 +70,7 @@ RZ_3^{(1,2)}(\theta)=\begin{pmatrix}
 \end{pmatrix} \\
 ```
 
-- Hadamard Gate [7]
+- Hadamard Gate
 
   - `H(dim).on(obj_qudits, ctrl_qudits, ctrl_states)`
 
@@ -122,7 +124,7 @@ H_3=\frac{1}{\sqrt{3}}
 \end{pmatrix}
 ```
 
-- General control gate, when the control state is $\ket{m}$, apply $U$ to qudits, where $U$ is a single(e.g X) or multi-qudits (e.g SWAP) gate.
+- General control gate, when the control state is $|{m}\rangle$, apply $U$ to qudits, where $U$ is a single(e.g $X$) or multi-qudits (e.g $SWAP$) gate.
   - That is, supporting `.on(obj_qudits=i, ctrl_qudits=j, ctrl_states=m)` for all gates.
 
 ```math
