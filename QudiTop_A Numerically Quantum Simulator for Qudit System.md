@@ -18,7 +18,7 @@ QudiTop is a numerically quantum simulator for qudit system based on PyTorch. He
 
 - $X, Y, Z, RX, RY, RZ$ Gate
 
-$$
+```math
 \begin{aligned}
 &\sigma_x^{(j, k)}= |j\rangle\langle k| + |k\rangle\langle j|,\qquad
 
@@ -38,7 +38,7 @@ $$
 
 & RZ_d^{(j,k)} = \exp\lbrace -{\mathrm i}\theta \sigma_x^{(j,k)}/2\rbrace\\
 \end{aligned}
-$$
+```
 
 e.g., for $d=3$, we have
 
