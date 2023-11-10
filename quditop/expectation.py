@@ -3,7 +3,7 @@
 from typing import List, Iterable
 import torch
 import torch.nn as nn
-from .gates import GateBase
+from quditop.gates import GateBase
 
 
 class Expectation(nn.Module):

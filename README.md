@@ -42,8 +42,7 @@ These qudits gates are realized, the matrix definations follows github repositor
   - Controlled gate: Control any above 1-qudit or multi-qubits gates by one or multi controlled qudits.
 
 For gates that contain parameters, such as $RX$, calculating the difference is supported to run VQE applications.
-A detailed introduction and mathematical matrix can be seen in article. Comparing with qubit, the qudit system is more complex, not only more state level has to be solved, but also the control states may change. In qubit system we
-normally use to the state $1$ as the control state, while in qudit system, such for $d=3$, there're 3 states ($0,1$ and $2$), we can use $1$ or $2$ as control state, or even
+A detailed introduction and mathematical matrix can be seen in document `Math_for_Gates_and_Circuit`. Comparing with qubit, the qudit system is more complex, not only more state level has to be solved, but also the control states may change. In qubit system we normally use to the state $1$ as the control state, while in qudit system, such for $d=3$, there're 3 states ($0,1$ and $2$), we can use $1$ or $2$ as control state, or even
 use state $0$. So a common format of gate is:
 
 - `H(dim).on(obj_qudits, ctrl_qudits, ctrl_states)`
