@@ -8,9 +8,9 @@ import torch.nn as nn
 from torch import Tensor
 from torch.nn import Parameter
 
-from .common import ket, bra, get_complex_tuple, check_unitary
-from .evolution import evolution_complex, get_general_controlled_gate_cmatrix
-from .global_var import DTYPE, DEFAULT_VALUE, DEFAULT_PARAM_NAME
+from quditop.common import ket, bra, get_complex_tuple, check_unitary
+from quditop.evolution import evolution_complex, get_general_controlled_gate_cmatrix
+from quditop.global_var import DTYPE, DEFAULT_VALUE, DEFAULT_PARAM_NAME
 
 
 def get_multi_value_controlled_gate_cmatrix(u_list: List[Tensor], ctrl_states: List = None):

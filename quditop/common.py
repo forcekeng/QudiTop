@@ -5,7 +5,7 @@ import numpy as np
 import torch
 from torch import Tensor
 
-from .global_var import DTYPE
+from quditop.global_var import DTYPE
 
 
 def ket(i, dim):

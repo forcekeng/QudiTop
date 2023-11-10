@@ -8,10 +8,10 @@ import torch
 import torch.nn as nn
 from torch import Tensor
 
-from .global_var import DTYPE
-from .utils import bprint, str_ket
-from .gates import GateBase, WithParamGate
-from .common import get_complex_tuple
+from quditop.global_var import DTYPE
+from quditop.utils import bprint, str_ket
+from quditop.gates import GateBase, WithParamGate
+from quditop.common import get_complex_tuple
 
 
 class Circuit(nn.Module):

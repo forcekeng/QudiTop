@@ -6,7 +6,7 @@ from typing import List, Tuple
 import torch
 from torch import Tensor
 
-from .common import get_complex_tuple
+from quditop.common import get_complex_tuple
 
 
 def get_general_controlled_gate_cmatrix(u, dim: int, ctrl_states: List):
