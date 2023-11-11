@@ -9,9 +9,9 @@ with open("./version.txt", "r") as f:
 
 NAME = "quditop"
 DESCRIPTION = "A numerically quantum simulator for qudit system."
-URL = ""
+URL = "https://github.com/forcekeng/QudiTop"
 EMAIL = "forcekeng@126.com"
-AUTHOR = ""
+AUTHOR = "Li Geng, Yanzheng Zhu, Zuoheng Zou"
 REQUIRES_PYTHON = ">=3.7.0"
 VERSION = "0.1.0"
 
