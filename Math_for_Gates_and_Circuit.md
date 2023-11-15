@@ -6,19 +6,19 @@ QudiTop is a numerically quantum simulator for qudit system based on PyTorch. He
 
 The define of gates comes from [GhostArtyom/QuditVQE](https://github.com/GhostArtyom/QuditVQE/blob/main/QuditSim/QuditSim.md).
 
-- 1-qudit gates
-  - Extended Pauli gates: $X_d^{(j,k)},Y_d^{(j,k)},Z_d^{(j,k)}$
+- Single-qudit gates
+  - Pauli gates: $X_d^{(j,k)},Y_d^{(j,k)},Z_d^{(j,k)}$
   - Rotation gate: $RX_d^{(j,k)},RY_d^{(j,k)},RZ_d^{(j,k)}$
   - Hadamard gate: $H_d$
   - Increment gate: $\mathrm{INC}_d$
-  - Phase gate: $PH$
+  - Global Phase gate: $\mathrm{GP}_d$
 
-- Multi-qudits gates
-  - Universal math gate: $UMG$, it can act on one or multi qudits, according to the shape of matrix.
-  - SWAP gate: $SWAP$.
+- Multi-qudit gates
+  - SWAP gate: $\mathrm{SWAP}$, swap two different qudits.
+  - Universal math gate: $\mathrm{UMG}$, it can act on one or multi qudits, according to the shape of matrix.
   - Controlled gate: Control any above 1-qudit or multi-qubits gates by one or multi controlled qudits.
 
-- $X, Y, Z, RX, RY, RZ$ Gate
+- Pauli and Rotation Gate
 
 ```math
 \begin{aligned}
@@ -42,7 +42,7 @@ The define of gates comes from [GhostArtyom/QuditVQE](https://github.com/GhostAr
 \end{aligned}
 ```
 
-e.g., for $d=3$, we have
+e.g., for qutrit $d=3$, we have
 
 ```math
 X_3^{(0,1)}=\begin{pmatrix}
@@ -71,7 +71,6 @@ RZ_3^{(1,2)}(\theta)=\begin{pmatrix}
 ```
 
 - Hadamard Gate
-
   - `H(dim).on(obj_qudits, ctrl_qudits, ctrl_states)`
 
 ```math
@@ -85,8 +84,7 @@ H_3=\frac{1}{\sqrt{3}}
 \end{pmatrix}
 ```
 
-- Increment Gate [1-3,9]
-
+- Increment Gate
   - `INC(dim).on(obj_qudits, ctrl_qudits, ctrl_states)`
 
 ```math
@@ -99,7 +97,20 @@ H_3=\frac{1}{\sqrt{3}}
 \end{pmatrix}
 ```
 
-- Swap Gate [7]
+- Global Phase Gate
+  - `GP(dim).on(obj_qudits, ctrl_qudits, ctrl_states)`
+
+```math
+\mathrm{GP}_d=\mathrm{diag}\big\{\mathrm{e}^{-i\theta},\mathrm{e}^{-i\theta},\dots,\mathrm{e}^{-i\theta}\big\},\quad
+\mathrm{GP}_3=
+\begin{pmatrix}
+\mathrm{e}^{-i\theta}\! & 0 & 0 \\
+0 & \!\mathrm{e}^{-i\theta}\! & 0 \\
+0 & 0 & \!\mathrm{e}^{-i\theta}\!
+\end{pmatrix}
+```
+
+- Swap Gate
   - `SWAP(dim).on(obj_qudits=[i, j], ctrl_qudits, ctrl_states)`
 
 ```math
@@ -124,7 +135,7 @@ H_3=\frac{1}{\sqrt{3}}
 \end{pmatrix}
 ```
 
-- General control gate, when the control state is $|{m}\rangle$, apply $U$ to qudits, where $U$ is a single(e.g $X$) or multi-qudits (e.g $SWAP$) gate.
+- General control gate, when the control state is $|{m}\rangle$, apply $U$ to qudits, where $U$ is a single (e.g $X$) or multi-qudit (e.g $\mathrm{SWAP}$) gate.
   - That is, supporting `.on(obj_qudits=i, ctrl_qudits=j, ctrl_states=m)` for all gates.
 
 ```math
@@ -135,21 +146,19 @@ C^m[U_d]\ket{i,j}=\left\{\begin{array}{c}
 ```
 
 ```math
-C^m[U_d]=\ket{m}\bra{m}\otimes U_d+\sum_{i\ne m}\ket{i}\bra{i}\otimes\mathbb{I}_{d^2-d}
+C^m[U_d]=\ket{m}\bra{m}\otimes U_d+\sum_{i\ne m}\ket{i}\bra{i}\otimes\mathbb{I}_d
 =\begin{pmatrix}
 \mathbb{I}_{dm} & \\ & U_d \\ && \mathbb{I}_{d(d-m-1)}
 \end{pmatrix}
 ```
 
-For two qudits,
+For two qudits gates,
 
 ```math
-C^{(m,n)}[U_{d^2}]=
- \ket{m}\bra{m}\otimes
- \ket{n}\bra{n}
- \otimes U_d+\sum_{i\ne m}\ket{i}\bra{i}\otimes\mathbb{I}_{d^2-d}
+C^m[U_{d^2}]=
+ \ket{m}\bra{m}\otimes U_{d^2}+\sum_{i\ne m}\ket{i}\bra{i}\otimes\mathbb{I}_{d^2}
 =\begin{pmatrix}
-\mathbb{I}_{dm} & \\ & U_d \\ && \mathbb{I}_{d(d-m-1)}
+\mathbb{I}_{d^2m} & \\ & U_{d^2} \\ && \mathbb{I}_{d^2(d-m-1)}
 \end{pmatrix}
 ```
 
