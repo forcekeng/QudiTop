@@ -11,19 +11,34 @@ The core source code lies in `quditop/` folder and examples in `examples/`.
 ```log
 .
 ├── README.md
+├── Math_for_Gates_and_Circuit.md      # The matrix of gates and so on.
+├── ...
 ├── examples
 │   ├── demo_basic.ipynb    # Demonstrate basic functions.
 │   └── demo_vqe.ipynb      # Demonstrate the VQE application.
 └── quditop
     ├── circuit.py          # Define the Circuit class.
     ├── common.py           # Common function.
-    ├── evolution.pyc       # Library for Windows-Python3.9.
-    ├── evolution.so        # Library for Linux-Python3.8.
+    ├── evolution.py        # Evolution of quantum state.
     ├── gates.py            # Quantum gates.
     ├── global_var.py       # Define some global configuration.
     └── utils.py            # Some tool functions.
 
 ```
+
+## Install
+
+There are two ways to install this package, by source code or by `.whl` file.
+
+- Source code:
+  - Clone the package: `git clone https://github.com/forcekeng/QudiTop.git`
+  - Run `python setup.py install`
+
+- `.whl` file:
+  - Here we provide the built [quditop-0.1.0-py3-none-any.whl](https://github.com/forcekeng/QudiTop/releases/download/qudit/quditop-0.1.0-py3-none-any.whl). Just download it and install it by `pip install quditop-0.1.0-py3-none-any.whl`.
+  - Note: This `.whl ` file is just built on Windows11 with Python3.9, so maybe it doesn't work on other enviromnents.
+
+Now this package is installed on your computer. To uninstall it, run `pip uninstall quditop` at terminal.
 
 ## Qudit Gate
 
@@ -42,7 +57,7 @@ These qudits gates are realized, the matrix definations follows github repositor
   - Controlled gate: Control any above 1-qudit or multi-qubits gates by one or multi controlled qudits.
 
 For gates that contain parameters, such as $RX$, calculating the difference is supported to run VQE applications.
-A detailed introduction and mathematical matrix can be seen in document `Math_for_Gates_and_Circuit`. Comparing with qubit, the qudit system is more complex, not only more state level has to be solved, but also the control states may change. In qubit system we normally use to the state $1$ as the control state, while in qudit system, such for $d=3$, there're 3 states ($0,1$ and $2$), we can use $1$ or $2$ as control state, or even
+A detailed introduction and mathematical matrix can be seen in document [Math_for_Gates_and_Circuit](./Math_for_Gates_and_Circuit.md). Comparing with qubit, the qudit system is more complex, not only more state level has to be solved, but also the control states may change. In qubit system we normally use to the state $1$ as the control state, while in qudit system, such for $d=3$, there're 3 states ($0,1$ and $2$), we can use $1$ or $2$ as control state, or even
 use state $0$. So a common format of gate is:
 
 - `H(dim).on(obj_qudits, ctrl_qudits, ctrl_states)`

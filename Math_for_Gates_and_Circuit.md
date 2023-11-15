@@ -1,4 +1,4 @@
-# QudiTop: A Numerically Quantum Simulator for Qudit System
+# Math for Gates and Circuit in QudiTop
 
 QudiTop is a numerically quantum simulator for qudit system based on PyTorch. Here we provide some mathematical define of gates and the time evolution of quantum state.
 
