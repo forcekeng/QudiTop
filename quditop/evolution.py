@@ -1,12 +1,10 @@
 """Time evolution of quantum state."""
-
 import math
-from typing import List, Tuple
-
 import torch
 from torch import Tensor
-
-from quditop.common import get_complex_tuple
+from .global_var import DTYPE
+from typing import List, Tuple
+from .utils import get_complex_tuple
 
 
 def get_general_controlled_gate_cmatrix(u, dim: int, ctrl_states: List):
@@ -17,40 +15,32 @@ def get_general_controlled_gate_cmatrix(u, dim: int, ctrl_states: List):
         k_qudits: The number of qudits the `u` acts on, including objective and control qudits.
         target_index: It determines where to put the input matrix `u`.
     """
-    assert (
-        isinstance(ctrl_states, List) and len(ctrl_states) >= 1
-    ), "The `ctrl_states` should be non-empty list."
+    assert (isinstance(ctrl_states, List) and len(ctrl_states) >= 1), "The `ctrl_states` should be non-empty list."
 
-    assert (
-        max(ctrl_states) < dim
-    ), "The maximum element in `ctrl_states` should less than `dim`."
+    assert (max(ctrl_states) < dim), "The maximum element in `ctrl_states` should less than `dim`."
 
     u_re, u_im = get_complex_tuple(u)
-    assert (
-        len(u_re.shape) == 2 and u_re.shape[0] == u_re.shape[1]
-    ), "The input matrix `u` should be a square matrix."
+    assert (len(u_re.shape) == 2 and u_re.shape[0] == u_re.shape[1]), "The input matrix `u` should be a square matrix."
 
     r = u_re.shape[0]
     k_obj_qudits = round(math.log(r, dim))
     k_ctrl_qudits = len(ctrl_states)
     k_qudits = k_obj_qudits + k_ctrl_qudits
-    re = torch.eye(dim**k_qudits)
-    im = torch.zeros((dim**k_qudits, dim**k_qudits))
+    re = torch.eye(dim**k_qudits, dtype=DTYPE)
+    im = torch.zeros((dim**k_qudits, dim**k_qudits), dtype=DTYPE)
     idx = dim**k_obj_qudits * int("".join(str(c) for c in ctrl_states), dim)
-    re[idx : idx + r, idx : idx + r] = u_re
-    im[idx : idx + r, idx : idx + r] = u_im
+    re[idx:idx + r, idx:idx + r] = u_re
+    im[idx:idx + r, idx:idx + r] = u_im
     return re, im
 
 
 def evolution(op_mat: Tensor, qs: Tensor, target_indices: List[int]) -> Tensor:
     """Get the new quantum state after applying specific operation(gate or matrix).
     Refer: `https://pyquil-docs.rigetti.com/en/stable/_modules/pyquil/simulation/_numpy.html`
-
     Args:
         op_mat: The operation matrix that change the quantum state.
         qs: Current quantum state.
         target_indices: The qudits that `op_mat` acts on.
-
     Returns:
         The new quantum state.
     """
@@ -70,12 +60,10 @@ def evolution_complex(op_mat: Tuple, qs: Tuple, target_indices: List[int]) -> Te
     """Get the new quantum state after applying specific operation(gate or matrix).
     Since the auto-difference of complex number is not supported in PyTorch, Here just decompose the complex
     matrix as a tuple (real, imag) which represents the real part and imaginary part respectively.
-
     Args:
         op_mat: The operation matrix that change the quantum state.
         qs: Current quantum state.
         target_indices: The qudits that `op_mat` acts on.
-
     Returns:
         The new quantum state.
     """
@@ -86,3 +74,6 @@ def evolution_complex(op_mat: Tuple, qs: Tuple, target_indices: List[int]) -> Te
     qs2_imag = evolution(op_mat_real, qs_imag, target_indices) \
         + evolution(op_mat_imag, qs_real, target_indices)
     return qs2_real, qs2_imag
+
+
+__all__ = ["get_general_controlled_gate_cmatrix", "evolution", "evolution_complex"]
